@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Auction</title>
+</head>
+<body>
+<h1>Distributed Auction</h1>
+<div id="auctions"></div>
+
+<h2>Bid Events</h2>
+<pre id="events"></pre>
+
+<script>
+    const wsUrl = (location.protocol === 'https:' ? 'wss://' : 'ws://')
+        + location.host + '/distributed-online-auction-1.0-SNAPSHOT/ws/auctions';
+    const ws = new WebSocket("ws://localhost:8080/distributed-online-auction-1.0-SNAPSHOT/ws/auctions");
+
+    ws.onmessage = (evt) => {
+        const pre = document.getElementById('events');
+        pre.textContent = evt.data + "\n" + pre.textContent;
+    };
+
+    async function loadAuctions(){
+        const res = await fetch('/distributed-online-auction-1.0-SNAPSHOT/api/auctions');
+        const data = await res.json();
+        const container = document.getElementById('auctions');
+        container.innerHTML = data.map(a => `
+        <div>
+          <h3>${a.title} (ID: ${a.id})</h3>
+          <p>Current Price: ${a.currentPrice}</p>
+          <input id="bid-${a.id}" placeholder="your amount" />
+          <button onclick="placeBid(${a.id})">Place Bid</button>
+        </div>
+      `).join('');
+    }
+
+    async function placeBid(id){
+        const amount = parseFloat(document.getElementById('bid-' + id).value);
+        const res = await fetch('/distributed-online-auction-1.0-SNAPSHOT/api/auctions/' + id + '/bid', {
+            method: 'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ userId: 1, amount: amount })
+        });
+        if (!res.ok) {
+            alert(await res.text());
+        } else {
+            alert('Bid placed!');
+            loadAuctions();
+        }
+    }
+
+    loadAuctions();
+</script>
+</body>
+</html>
