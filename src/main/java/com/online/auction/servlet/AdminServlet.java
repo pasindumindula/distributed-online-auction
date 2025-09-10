@@ -1,13 +1,13 @@
 package com.online.auction.servlet;
 
-import jakarta.servlet.*;
-import jakarta.ejb.EJB;
-
-import java.io.IOException;
-
-import com.online.auction.service.AuctionRegistry;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ejb.EJB;
+import java.io.IOException;
+import com.online.auction.service.AuctionRegistry;
 
 @WebServlet("/admin/initAuction")
 public class AdminServlet extends HttpServlet {

@@ -1,9 +1,12 @@
 package com.online.auction.service;
 
-import jakarta.ejb.*;
+import jakarta.ejb.Stateless;
+import jakarta.ejb.EJB;
 import jakarta.annotation.Resource;
-import jakarta.jms.*;
-import com.online.auction.model.Bid;
+import jakarta.jms.JMSContext;
+import jakarta.jms.Topic;
+import jakarta.jms.ObjectMessage;
+import com.online.auction.entity.Bid;
 import com.online.auction.jms.BidMessage;
 import com.online.auction.exception.BidException;
 
@@ -21,16 +24,16 @@ public class AuctionManagerService {
 
     public boolean placeBid(Bid bid) {
         try {
-            // 1. Delegate bid validation and persistence to BidManagerService
+            // 1. Delegate bid validation and persistence
             Bid createdBid = bidManager.createBid(bid);
             if (createdBid == null) {
-                return false; // Bid was not valid
+                return false;
             }
 
-            // 2. Create and send a JMS Message with bid details
+            // 2. Create and send JMS Message
             BidMessage bidMsg = new BidMessage(
                     createdBid.getAuctionId(),
-                    "Awesome Item", // TODO: Fetch actual item name from DB
+                    "Auction Item", // TODO: Fetch actual item name
                     createdBid.getAmount(),
                     createdBid.getBidderName()
             );

@@ -1,9 +1,8 @@
 package com.online.auction.entity;
 
 import jakarta.persistence.*;
-
 import java.io.Serializable;
-import java.time.Instant;
+import java.util.Date;
 
 @Entity
 @Table(name = "auctions")
@@ -12,90 +11,55 @@ public class Auction implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String title;
-
-    @Column(length = 2000)
+    private String itemName;
     private String description;
+    private Double startingPrice;
+    private Double currentBid;
 
-    private double startingPrice;
-    private double currentPrice;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date startTime;
 
-    private Instant startTime;
-    private Instant endTime;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date endTime;
 
-    @Version
-    private Long version;
-    private boolean active;
+    private String status; // "ACTIVE", "CLOSED", "PENDING"
 
-    public Long getId() {
-        return id;
+    // Constructors
+    public Auction() {
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
+    public Auction(String itemName, String description, Double startingPrice, Date endTime) {
+        this.itemName = itemName;
         this.description = description;
-    }
-
-    public double getStartingPrice() {
-        return startingPrice;
-    }
-
-    public void setStartingPrice(double startingPrice) {
         this.startingPrice = startingPrice;
-    }
-
-    public double getCurrentPrice() {
-        return currentPrice;
-    }
-
-    public void setCurrentPrice(double currentPrice) {
-        this.currentPrice = currentPrice;
-    }
-
-    public Instant getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(Instant startTime) {
-        this.startTime = startTime;
-    }
-
-    public Instant getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(Instant endTime) {
+        this.currentBid = startingPrice;
+        this.startTime = new Date();
         this.endTime = endTime;
+        this.status = "ACTIVE";
     }
 
-    public Long getVersion() {
-        return version;
-    }
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setVersion(Long version) {
-        this.version = version;
-    }
+    public String getItemName() { return itemName; }
+    public void setItemName(String itemName) { this.itemName = itemName; }
 
-    public boolean isActive() {
-        return active;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setActive(boolean active) {
-        this.active = active;
-    }
+    public Double getStartingPrice() { return startingPrice; }
+    public void setStartingPrice(Double startingPrice) { this.startingPrice = startingPrice; }
+
+    public Double getCurrentBid() { return currentBid; }
+    public void setCurrentBid(Double currentBid) { this.currentBid = currentBid; }
+
+    public Date getStartTime() { return startTime; }
+    public void setStartTime(Date startTime) { this.startTime = startTime; }
+
+    public Date getEndTime() { return endTime; }
+    public void setEndTime(Date endTime) { this.endTime = endTime; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

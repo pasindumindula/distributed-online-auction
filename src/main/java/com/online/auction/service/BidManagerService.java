@@ -1,14 +1,18 @@
 package com.online.auction.service;
 
-import jakarta.ejb.*;
+import jakarta.ejb.Stateless;
+import jakarta.ejb.EJB;
+import jakarta.ejb.TransactionAttribute;
+import jakarta.ejb.TransactionAttributeType;
 import jakarta.annotation.Resource;
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
-import com.online.auction.model.Bid;
+import com.online.auction.entity.Bid;
 import com.online.auction.exception.BidException;
+
+import javax.sql.DataSource;
 
 @Stateless
 public class BidManagerService {
@@ -17,18 +21,18 @@ public class BidManagerService {
     private AuctionRegistry auctionRegistry;
 
     @Resource(lookup = "jdbc/auctionDB")
-    private DataSource dataSource;
+    private javax.sql.DataSource dataSource;
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public Bid createBid(Bid bid) {
-        // 1. FIRST, check against the in-memory Singleton for speed
+        // 1. Check against in-memory Singleton for speed
         Double currentHighBid = auctionRegistry.getHighBid(bid.getAuctionId());
         if (currentHighBid != null && bid.getAmount() <= currentHighBid) {
             System.out.println("Bid rejected. " + bid.getAmount() + " is not higher than " + currentHighBid);
-            return null; // Bid is not high enough
+            return null;
         }
 
-        // 2. If it passes, then do the database operation
+        // 2. Database operation
         String sql = "INSERT INTO bid (auction_id, bidder_name, amount, bid_time) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = dataSource.getConnection();
@@ -55,10 +59,28 @@ public class BidManagerService {
             throw new BidException("Failed to create bid", e);
         }
 
-        // 3. UPDATE THE SINGLETON with the new high bid
+        // 3. Update Singleton with new high bid
         auctionRegistry.updateHighBid(bid.getAuctionId(), bid.getAmount());
         System.out.println("New high bid for auction " + bid.getAuctionId() + " is " + bid.getAmount());
 
         return bid;
+    }
+
+    public Double getHighestBidFromDB(Long auctionId) {
+        String sql = "SELECT MAX(amount) as max_bid FROM bid WHERE auction_id = ?";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setLong(1, auctionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("max_bid");
+                }
+            }
+        } catch (Exception e) {
+            throw new BidException("Failed to get highest bid from DB", e);
+        }
+        return null;
     }
 }

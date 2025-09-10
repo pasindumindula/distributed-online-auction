@@ -1,54 +1,40 @@
 package com.online.auction.rest;
 
-import com.online.auction.ejb.AuctionManagerBean;
-import com.online.auction.ejb.BidManagerBean;
-import com.online.auction.entity.Auction;
+import jakarta.ejb.EJB;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import com.online.auction.service.AuctionManagerService;
 import com.online.auction.entity.Bid;
 
-import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.*;
-
-import java.util.List;
-
-@Path("/auctions")
+@Path("/auction")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class AuctionResource {
 
-    @PersistenceContext(unitName = "AuctionPU")
-    private EntityManager em;
-
-    @Inject
-    private AuctionManagerBean auctionManager;
-
-    @Inject
-    private BidManagerBean bidManager;
-
-    @GET
-    public List<Auction> list() {
-        TypedQuery<Auction> q = em.createQuery("SELECT a FROM Auction a WHERE a.active = TRUE", Auction.class);
-        return q.getResultList();
-    }
+    @EJB
+    private AuctionManagerService auctionManager;
 
     @POST
-    @Path("/{id}/bid")
-    public Response placeBid(@PathParam("id") Long id, BidRequest req) {
+    @Path("/bid")
+    public Response placeBid(Bid bid) {
         try {
-            Bid bid = bidManager.placeBid(id, req.userId, req.amount);
-            return Response.ok(bid).build();
-        } catch (IllegalArgumentException ex) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage()).build();
-        } catch (Exception ex) {
-            return Response.serverError().entity(ex.getMessage()).build();
+            boolean success = auctionManager.placeBid(bid);
+            if (success) {
+                return Response.ok().entity("{\"status\": \"success\", \"message\": \"Bid placed successfully\"}").build();
+            } else {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"status\": \"error\", \"message\": \"Bid amount too low\"}").build();
+            }
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"status\": \"error\", \"message\": \"Failed to place bid: " + e.getMessage() + "\"}").build();
         }
     }
 
-    public static class BidRequest {
-        public Long userId;
-        public double amount;
+    @GET
+    @Path("/status")
+    public Response getStatus() {
+        return Response.ok().entity("{\"status\": \"Auction system is running\"}").build();
     }
 }

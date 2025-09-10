@@ -1,12 +1,16 @@
 package com.online.auction.jms;
 
-import com.online.auction.websocket.AuctionWebSocket;
-import jakarta.ejb.*;
-import jakarta.jms.*;
+import jakarta.ejb.MessageDriven;
+import jakarta.ejb.ActivationConfigProperty;
+import jakarta.jms.MessageListener;
+import jakarta.jms.Message;
+import jakarta.jms.JMSException;
+import jakarta.jms.ObjectMessage;
+import com.online.auction.websocket.WebSocketEndpoint;
 
 @MessageDriven(activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "java:app/jms/bidTopic"),
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Topic")
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "jakarta.jms.Topic")
 })
 public class BidNotificationMDB implements MessageListener {
 
@@ -22,7 +26,7 @@ public class BidNotificationMDB implements MessageListener {
                         bidMsg.getAuctionId(), bidMsg.getItemName(), bidMsg.getNewPrice(), bidMsg.getBidderName()
                 );
 
-                AuctionWebSocket.broadcast(jsonMessage);
+                WebSocketEndpoint.broadcast(jsonMessage);
                 System.out.println("MDB: Broadcasted update: " + jsonMessage);
             }
         } catch (JMSException e) {

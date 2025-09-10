@@ -8,7 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Singleton
 @ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
 public class AuctionRegistry {
-
     private ConcurrentHashMap<Long, Double> currentHighBids = new ConcurrentHashMap<>();
 
     public void updateHighBid(Long auctionId, Double newBid) {
