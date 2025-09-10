@@ -1,11 +1,13 @@
 package com.online.auction.service;
 
-import jakarta.ejb.Singleton;
-import jakarta.ejb.ConcurrencyManagement;
+import jakarta.ejb.*;
 import jakarta.ejb.ConcurrencyManagementType;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 @Singleton
+@Startup
+@LocalBean
 @ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
 public class AuctionRegistry {
     private ConcurrentHashMap<Long, Double> currentHighBids = new ConcurrentHashMap<>();

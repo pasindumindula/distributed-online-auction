@@ -1,56 +1,580 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <title>Auction</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributed Auction System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7f9;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eaeaea;
+            color: #2575fc;
+        }
+
+        .auction-list {
+            display: grid;
+            gap: 20px;
+        }
+
+        .auction-item {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid #6a11cb;
+            transition: transform 0.2s;
+        }
+
+        .auction-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .auction-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .auction-price {
+            font-size: 1.4rem;
+            color: #28a745;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .bid-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .bid-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .bid-button {
+            background-color: #6a11cb;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .bid-button:hover {
+            background-color: #5a0fb8;
+        }
+
+        .events-container {
+            max-height: 500px;
+            overflow-y: auto;
+            background-color: #1e1e1e;
+            color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .event-item {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            background-color: #2d2d2d;
+        }
+
+        .event-time {
+            color: #6a9955;
+            margin-right: 10px;
+        }
+
+        .event-message {
+            color: #d4d4d4;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-connected {
+            background-color: #28a745;
+        }
+
+        .status-disconnected {
+            background-color: #dc3545;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background-color: #28a745;
+        }
+
+        .notification.error {
+            background-color: #dc3545;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, .3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .refresh-button {
+            background-color: #2575fc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
 </head>
 <body>
-<h1>Distributed Auction</h1>
-<div id="auctions"></div>
+<div class="container">
+    <header>
+        <h1>Distributed Auction System</h1>
+        <p class="subtitle">Bid in real-time on exciting items</p>
+    </header>
 
-<h2>Bid Events</h2>
-<pre id="events"></pre>
+    <div class="content">
+        <div class="section">
+            <h2 class="section-title">Active Auctions</h2>
+            <button class="refresh-button" onclick="loadAuctions()">
+                <span>Refresh Auctions</span>
+            </button>
+            <div id="auctions" class="auction-list">
+                <div class="auction-item">
+                    <div class="auction-title">Loading auctions...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Bid Events</h2>
+            <div class="events-container">
+                <div id="events">
+                    <div class="event-item">
+                        <span class="event-time">[System]</span>
+                        <span class="event-message">Waiting for auction events...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="connection-status">
+                <span id="ws-status" class="status-indicator status-disconnected"></span>
+                <span id="ws-status-text">Disconnected from server</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="notification" class="notification"></div>
 
 <script>
-    const wsUrl = (location.protocol === 'https:' ? 'wss://' : 'ws://')
-        + location.host + '/distributed-online-auction-1.0-SNAPSHOT/ws/auctions';
-    const ws = new WebSocket("ws://localhost:8080/distributed-online-auction-1.0-SNAPSHOT/ws/auctions");
+    // WebSocket connection
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const wsUrl = protocol + window.location.host + '/distributed-online-auction-1.0-SNAPSHOT/auctionUpdates';
+    let ws;
 
-    ws.onmessage = (evt) => {
-        const pre = document.getElementById('events');
-        pre.textContent = evt.data + "\n" + pre.textContent;
+    // DOM elements
+    const eventsElement = document.getElementById('events');
+    const wsStatusElement = document.getElementById('ws-status');
+    const wsStatusTextElement = document.getElementById('ws-status-text');
+    const notificationElement = document.getElementById('notification');
+
+    // Current user (in a real app, this would come from authentication)
+    const currentUser = {
+        id: 1,
+        username: "demo_user",
+        email: "user@example.com"
     };
 
-    async function loadAuctions(){
-        const res = await fetch('/distributed-online-auction-1.0-SNAPSHOT/api/auctions');
-        const data = await res.json();
-        const container = document.getElementById('auctions');
-        container.innerHTML = data.map(a => `
-        <div>
-          <h3>${a.title} (ID: ${a.id})</h3>
-          <p>Current Price: ${a.currentPrice}</p>
-          <input id="bid-${a.id}" placeholder="your amount" />
-          <button onclick="placeBid(${a.id})">Place Bid</button>
-        </div>
-      `).join('');
-    }
+    // Connect to WebSocket
+    function connectWebSocket() {
+        try {
+            ws = new WebSocket(wsUrl);
 
-    async function placeBid(id){
-        const amount = parseFloat(document.getElementById('bid-' + id).value);
-        const res = await fetch('/distributed-online-auction-1.0-SNAPSHOT/api/auctions/' + id + '/bid', {
-            method: 'POST',
-            headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ userId: 1, amount: amount })
-        });
-        if (!res.ok) {
-            alert(await res.text());
-        } else {
-            alert('Bid placed!');
-            loadAuctions();
+            ws.onopen = function() {
+                console.log('WebSocket connected');
+                wsStatusElement.className = 'status-indicator status-connected';
+                wsStatusTextElement.textContent = 'Connected to auction updates';
+                showNotification('Connected to live auction updates', 'success');
+                addEvent('WebSocket connection established', 'system');
+            };
+
+            ws.onclose = function() {
+                console.log('WebSocket disconnected');
+                wsStatusElement.className = 'status-indicator status-disconnected';
+                wsStatusTextElement.textContent = 'Disconnected from server';
+
+                // Try to reconnect after 3 seconds
+                setTimeout(connectWebSocket, 3000);
+            };
+
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                addEvent('WebSocket error occurred', 'error');
+            };
+
+            ws.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    addEvent(data.message || event.data, 'update');
+
+                    // Refresh auctions when we receive updates
+                    loadAuctions();
+                } catch (e) {
+                    addEvent(event.data, 'update');
+                }
+            };
+
+        } catch (error) {
+            console.error('Failed to connect WebSocket:', error);
+            wsStatusTextElement.textContent = 'Failed to connect: ' + error.message;
+
+            // Try to reconnect after 5 seconds
+            setTimeout(connectWebSocket, 5000);
         }
     }
 
-    loadAuctions();
+    // Add event to the events list
+    function addEvent(message, type) {
+        const eventItem = document.createElement('div');
+        eventItem.className = 'event-item';
+
+        const now = new Date();
+        const timeString = '[' + now.toLocaleTimeString() + ']';
+
+        eventItem.innerHTML = `
+            <span class="event-time">${timeString}</span>
+            <span class="event-message">${message}</span>
+        `;
+
+        // Add specific styling based on event type
+        if (type === 'error') {
+            eventItem.style.backgroundColor = '#4a1c1c';
+            eventItem.querySelector('.event-message').style.color = '#e58686';
+        } else if (type === 'system') {
+            eventItem.style.backgroundColor = '#1c394a';
+            eventItem.querySelector('.event-message').style.color = '#86b7e5';
+        }
+
+        eventsElement.prepend(eventItem);
+
+        // Limit to 100 events to prevent performance issues
+        if (eventsElement.children.length > 100) {
+            eventsElement.removeChild(eventsElement.lastChild);
+        }
+    }
+
+    // Show notification
+    function showNotification(message, type) {
+        notificationElement.textContent = message;
+        notificationElement.className = `notification ${type}`;
+        notificationElement.classList.add('show');
+
+        setTimeout(() => {
+            notificationElement.classList.remove('show');
+        }, 3000);
+    }
+
+    // Load auctions from the server
+    async function loadAuctions() {
+        try {
+            const auctionsContainer = document.getElementById('auctions');
+            auctionsContainer.innerHTML = `
+                <div class="auction-item">
+                    <div class="auction-title">Loading auctions...</div>
+                </div>
+            `;
+
+            // Try to get active auctions from the server
+            try {
+                const response = await fetch('/distributed-online-auction-1.0-SNAPSHOT/api/auction/active');
+
+                if (response.ok) {
+                    const auctions = await response.json();
+                    displayAuctions(auctions);
+                    return;
+                }
+            } catch (apiError) {
+                console.log('Active auctions endpoint not available, using mock data');
+            }
+
+            // Fallback to mock data if endpoint is not available
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Mock data - replace this with actual API call when endpoint is available
+            const mockAuctions = [
+                {
+                    id: 1,
+                    itemName: "Vintage Wine Collection",
+                    description: "Rare collection of vintage wines from 1990s",
+                    startingPrice: 100.00,
+                    currentBid: 150.00,
+                    startTime: new Date(Date.now() - 86400000).toISOString(),
+                    endTime: new Date(Date.now() + 86400000).toISOString(),
+                    status: "ACTIVE"
+                },
+                {
+                    id: 2,
+                    itemName: "Rare Signed Book",
+                    description: "First edition signed by author",
+                    startingPrice: 50.00,
+                    currentBid: 89.50,
+                    startTime: new Date(Date.now() - 172800000).toISOString(),
+                    endTime: new Date(Date.now() + 43200000).toISOString(),
+                    status: "ACTIVE"
+                },
+                {
+                    id: 3,
+                    itemName: "Antique Pocket Watch",
+                    description: "19th century silver pocket watch",
+                    startingPrice: 150.00,
+                    currentBid: 210.75,
+                    startTime: new Date(Date.now() - 43200000).toISOString(),
+                    endTime: new Date(Date.now() + 172800000).toISOString(),
+                    status: "ACTIVE"
+                }
+            ];
+
+            displayAuctions(mockAuctions);
+
+        } catch (error) {
+            console.error('Error loading auctions:', error);
+            document.getElementById('auctions').innerHTML = `
+                <div class="auction-item">
+                    <div class="auction-title">Error loading auctions. Please try again.</div>
+                </div>
+            `;
+            showNotification('Failed to load auctions', 'error');
+            addEvent('Failed to load auctions: ' + error.message, 'error');
+        }
+    }
+
+    // Display auctions in the UI
+    function displayAuctions(auctions) {
+        const auctionsContainer = document.getElementById('auctions');
+
+        if (auctions.length === 0) {
+            auctionsContainer.innerHTML = `
+                <div class="auction-item">
+                    <div class="auction-title">No active auctions at the moment</div>
+                </div>
+            `;
+            return;
+        }
+
+        auctionsContainer.innerHTML = auctions.map(auction => `
+            <div class="auction-item">
+                <div class="auction-title">${auction.itemName} (ID: ${auction.id})</div>
+                <div>${auction.description}</div>
+                <div class="auction-price">$${auction.currentBid.toFixed(2)}</div>
+                <div>Ends: ${new Date(auction.endTime).toLocaleString()}</div>
+                <div class="bid-form">
+                    <input type="number" id="bid-${auction.id}" class="bid-input" placeholder="Your bid amount" min="${auction.currentBid + 1}" step="0.01" required>
+                    <button onclick="placeBid(${auction.id})" class="bid-button">Place Bid</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Place a bid on an auction
+    async function placeBid(auctionId) {
+        const amountInput = document.getElementById(`bid-${auctionId}`);
+        const amount = parseFloat(amountInput.value);
+
+        if (isNaN(amount) || amount <= 0) {
+            showNotification('Please enter a valid bid amount', 'error');
+            return;
+        }
+
+        try {
+            // Create bid object according to your Bid entity
+            const bid = {
+                auctionId: auctionId,
+                bidderName: currentUser.username,
+                amount: amount
+            };
+
+            const response = await fetch('/distributed-online-auction-1.0-SNAPSHOT/api/auction/bid', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(bid)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showNotification('Bid placed successfully!', 'success');
+                addEvent(`Bid of $${amount.toFixed(2)} placed on auction ${auctionId} by ${currentUser.username}`, 'update');
+
+                // Clear input
+                amountInput.value = '';
+
+                // Refresh the auction list to show updated prices
+                loadAuctions();
+
+                // Broadcast update via WebSocket (in a real implementation, this would be done by the server)
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: "BID_PLACED",
+                        auctionId: auctionId,
+                        bidder: currentUser.username,
+                        amount: amount,
+                        message: `New bid of $${amount.toFixed(2)} placed on auction ${auctionId}`
+                    }));
+                }
+            } else {
+                showNotification(result.message || 'Bid failed', 'error');
+                addEvent(`Failed to place bid of $${amount.toFixed(2)} on auction ${auctionId}: ${result.message}`, 'error');
+            }
+
+        } catch (error) {
+            console.error('Error placing bid:', error);
+            showNotification('Failed to place bid. Please try again.', 'error');
+            addEvent('Error placing bid: ' + error.message, 'error');
+        }
+    }
+
+    // Check system status
+    async function checkStatus() {
+        try {
+            const response = await fetch('/distributed-online-auction-1.0-SNAPSHOT/api/auction/status');
+            const result = await response.json();
+            addEvent(`System status: ${result.status}`, 'system');
+        } catch (error) {
+            console.error('Error checking status:', error);
+            addEvent('Error checking system status', 'error');
+        }
+    }
+
+    // Initialize the application
+    function init() {
+        connectWebSocket();
+        loadAuctions();
+        checkStatus();
+        addEvent('Auction system initialized. Welcome, ' + currentUser.username, 'system');
+    }
+
+    // Start the application when the page loads
+    window.onload = init;
 </script>
 </body>
 </html>

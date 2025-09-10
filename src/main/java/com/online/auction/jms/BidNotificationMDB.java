@@ -9,7 +9,7 @@ import jakarta.jms.ObjectMessage;
 import com.online.auction.websocket.WebSocketEndpoint;
 
 @MessageDriven(activationConfig = {
-        @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "java:app/jms/bidTopic"),
+        @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "jms/bidTopic"),
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "jakarta.jms.Topic")
 })
 public class BidNotificationMDB implements MessageListener {

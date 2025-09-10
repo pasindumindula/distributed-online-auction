@@ -20,7 +20,7 @@ public class BidManagerService {
     @EJB
     private AuctionRegistry auctionRegistry;
 
-    @Resource(lookup = "jdbc/auctionDB")
+    @Resource(lookup = "jdbc/AuctionDS")
     private javax.sql.DataSource dataSource;
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
